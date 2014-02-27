@@ -1,0 +1,39 @@
+body {
+	background: #dedede;
+}
+
+#painter {
+	width: 600px;
+	height: 400px;
+	margin: 0 auto;
+}
+
+#conversation {
+	height: 130px;
+	width: auto;
+	overflow-y: auto;
+}
+
+#convo {
+	float: left;
+	width: 300px;
+	height: 450px;
+	padding-left: 10px;
+	padding-top: 10px;
+}
+
+#user_list {
+	float: left;
+	width: 100px;
+	height: 250px;
+	border-right: 1px solid black;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 10px;
+	overflow-y: auto;
+
+}
+
+#chat_area {
+	/*margin-left: 300px;*/
+}

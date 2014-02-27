@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" href="http://localhost:8080/main.css">
+<link rel="stylesheet" href="http://localhost:8080/drawingboard.min.css">
+<title>piirra-arvaa 0.1</title>
+<script type="text/javascript" src="http://localhost:8080/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="http://localhost:8080/jquery.js"></script>
+<script type="text/javascript" src="http://localhost:8080/drawingboard.min.js"></script>
+<!--  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script> -->
+<script>
+	var socket = io.connect('http://localhost:8080');
+	var is_my_turn = false;
+	var the_word = "";
+
+	var painter = null;
+
+	// on connection to server, ask for user's name with an anonymous callback
+	socket.on('connect', function(){
+		// call the server-side function 'adduser' and send one parameter (value of prompt)
+		// TODO clear UI
+		var name = null;
+		while(name === null || name === "") { name = prompt("What's your name?"); }
+		socket.emit('add_user', name);
+		handleUI();
+	});
+
+	// listener, whenever the server emits 'updatechat', this updates the chat body
+	socket.on('update_chat', function (username, data) {
+		say(username, data);
+	});
+
+	// listener, whenever the server emits 'update_users', this updates the username list
+	socket.on('update_users', function(data) {
+		$('#users').empty();
+		$.each(data, function(key, value) {
+			$('#users').append('<div>' + key + '</div>');
+		});
+	});
+	
+	//on img update
+	socket.on('update_img', function() {
+		if (is_my_turn === false && painter !== null) {
+	    	var src = 'out.png?' + new Date().getTime(); // Set source path 
+	    	//console.log(src);
+	    	//img.onload = function(){  
+	      	// execute drawImage statements here  This is essential as it waits till image is loaded before drawing it.
+	 		painter.setImg(src);
+	    	//};
+		}
+	});
+	// sets the word to draw for the drawer
+	socket.on('word_to_draw', function(word) {
+		the_word = word;
+	});
+	// counter, game_start, game_stop, next_drawer, intermission_counter_s/s, drawer_counter_s/s
+	socket.on('game_start', function() {
+		handleUI();
+	});
+	socket.on('game_stop', function() {
+		handleUI();
+		// CLEAR things if game is stopped. f.ex all buttons should be set to Wanna play
+		$('#iwannaplay').prop('value', 'iwannaplay');
+		$('#iwannaplay').html("I wanna play");
+
+	});	
+	socket.on('is_drawing', function(what) {
+		is_my_turn = what;
+	});
+
+	socket.on('intermission_counter_start', function() {
+		handleUI();
+		console.log(socket);
+		var message = '<div class="message"><b>INTERMISSION::</b></div>';
+		server_say(message);
+		if(is_my_turn === true) {
+			var msg = '<div class="message"><b>!!!! YOUR WORD is </b> ' + the_word + '<br></div>';
+			server_say(msg);
+			$('#word').html(the_word);
+		} else {
+			the_word = "";
+			$('#word').html("");
+		}
+	});
+	
+	socket.on('drawer_counter_start', function() {
+		var msg = '<div class="message"><b>ROUND START::</b><br></div>';
+		server_say(msg);
+	});
+	
+	socket.on('counter', function(count) {
+		$('#counter').html(count);
+	});
+	
+	function handleUI() {
+		if(is_my_turn === true) {
+			disable_chat();
+			$(".drawing-board-canvas").css('pointer-events', 'auto');
+		} else {
+			enable_chat();
+			$(".drawing-board-canvas").css('pointer-events', 'none');
+		}
+	}
+
+	function say(username, data) {
+		var out = '<div class="message"><b>'+ username +'</b> ' + data + '<br></div>';
+		$('#conversation').append(out);
+		$('#conversation').scrollTop($('#conversation')[0].scrollHeight);		
+	}
+
+	function server_say(data) {
+		$('#conversation').append(data);
+		$('#conversation').scrollTop($('#conversation')[0].scrollHeight);		
+	}
+	
+	function enable_chat() {
+		$('#data').prop('disabled', false);
+		$('#datasend').prop('disabled', false);		
+	}
+	
+	function disable_chat() {
+		$('#data').prop('disabled', true);
+		$('#datasend').prop('disabled', true);		
+	}
+
+	// on page load
+	$(function(){
+		
+		// when the client clicks SEND
+		$('#datasend').click( function() {
+			var message = $('#data').val();
+			$('#data').val('');
+			socket.emit('msg', message);
+		});
+
+		$('#iwannaplay').click(function() {
+			if($(this).prop('value') === 'iwannaplay') {
+				socket.emit('wanna_play', true);
+				$(this).prop('value', 'dontwanna');
+				$(this).html("I don't wanna play");
+			} else {
+				socket.emit('wanna_play', false);
+				$(this).prop('value', 'iwannaplay');
+				$(this).html("I wanna play");
+			}
+			handleUI();
+		});
+		
+		// when the client hits ENTER on their keyboard
+		$('#data').keypress(function(e) {
+			if(e.which == 13) {
+				$(this).blur();
+				$('#datasend').focus().click();
+				$('#data').focus();
+			}
+		});
+
+		painter = new DrawingBoard.Board('painter', {
+			background: '#ffffff',
+			size: 4,
+			controls: [
+				'Color',
+				{ Size: { type: 'dropdown'} },
+				'DrawingMode',
+				'Navigation'
+			],
+			webStorage: false,
+		});
+
+		painter.ev.bind('board:stopDrawing', function() {
+			if (is_my_turn === true) {
+				var dataUrl = painter.getImg();
+				socket.emit('img_send', dataUrl);
+			}
+		});
+
+	});
+
+</script>
+</head>
+<body>
+
+<div id="painter"></div>
+<div id="counter_and_word">
+<div id="counter"></div>
+<div id="word"></div>
+</div>
+<div id="chat_area">
+	<div id="user_list">
+		<b>USERS</b>
+		<div id="users"></div>
+	</div>
+	<div id="convo">
+		<div id="conversation"></div>
+		<input id="data" style="width:200px;" />
+		<button id="datasend" value="send">Send</button>
+		<button id="iwannaplay" value="iwannaplay">I wanna play</button>
+	</div>
+</div>
+</body>
+</html>
