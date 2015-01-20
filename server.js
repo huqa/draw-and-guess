@@ -2,7 +2,7 @@
  * Piirrä & arvaa - nodejs server
  * @author Ville Riikonen // huqa - pikkuhukka@gmail.com
  *
- * TODO: 
+ * TODO&NOTES: Database too slow to fetch word. Need to set a timeout? or something 
  *
  *
  */
@@ -33,6 +33,7 @@ var db = new sqlite3.Database(db_file);
 db.serialize(function() {
 	if(!db_file_exists) {
 		db.run('CREATE TABLE words(id int PRIMARY KEY, word TEXT)');
+		db.run('INSERT INTO words(word) VALUES("bulle")');
 		// Possibly create scores
 	}
 });
@@ -76,6 +77,7 @@ app.get('/', function (req, res) {
 //app.get('/jquery.js', function(req, res) {
 //	res.sendfile(__dirname + '/js/lib/jquery.js');
 //});
+app.use(express.static(__dirname + '/js'));
 app.use(express.static(__dirname + '/js/lib'));
 app.use(express.static(__dirname + '/img'));
 app.use(express.static(__dirname + '/css'));
@@ -83,6 +85,7 @@ app.use(express.static(__dirname + '/css'));
 var game = new function() {
 	this.max_time = 180;
 	this.intermission_time = 15;
+	this.victory_timer = 8;
 	// The game is running (includes intermissions etc.)
 	this.is_running = false;
 	// Is the game in intermission
@@ -91,7 +94,8 @@ var game = new function() {
 	this.player_is_drawing = false;
 	this.drawer = "";
 	this.timer;
-	this.the_word = "nabuti";
+	this.the_word = "";
+	this.the_word_id = "";
 	this.start_timer = function() {
 		this.player_is_drawing = true;
 		io.sockets.emit('drawer_counter_start');
@@ -106,6 +110,7 @@ var game = new function() {
 	this.start_intermission = function() {
 		// here we should broadcast the word to be guessed for the drawer - oh ja se pitää arpoo
 		var id = find_socket_by_name(this.drawer);
+		//this.fetch_word();
 		//sqlite fetch here
 		io.sockets.sockets[id].emit('word_to_draw', this.the_word);
 		io.sockets.emit('intermission_counter_start');
@@ -122,6 +127,8 @@ var game = new function() {
 			var id = find_socket_by_name(this.drawer);
 			io.sockets.sockets[id].is_drawer = false;	
 			io.sockets.sockets[id].emit('is_drawing', false);
+			// No one guessed the word so... next drawer?
+			game.next_drawer();
 		} else {
 			io.sockets.emit('counter', counter);
 		}
@@ -137,6 +144,16 @@ var game = new function() {
 			io.sockets.emit('counter', counter);
 		}
 	};
+	this.victory_decrement = function(self) {
+		counter = counter - 1;
+		if(counter <= 0) {
+			game.stop_timer();
+			io.sockets.emit('victory_counter_stop');
+			game.next_drawer();
+		} else {
+			io.sockets.emit('counter', counter);
+		}
+	};
 	this.run = function() {
 		this.is_running = true;
 		this.drawer = player_queue();
@@ -148,7 +165,8 @@ var game = new function() {
 		io.sockets.sockets[id].emit('is_drawing', true);
 		io.sockets.sockets[id].emit('update_chat', 'SERVER', "It's your turn to draw.");
 		io.sockets.emit('game_start');
-		this.start_intermission();
+		//this.start_intermission();
+		this.fetch_word_and_start_intermission();
 	};
 	this.stop = function() {
 		var id = find_socket_by_name(this.drawer);
@@ -170,8 +188,11 @@ var game = new function() {
 		var id = find_socket_by_name(this.drawer);
 		io.sockets.sockets[id].is_drawer = false;
 		io.sockets.sockets[id].emit('is_drawing', false);
+		io.sockets.emit('victory_counter_start');
+		counter = this.victory_timer;
+		this.timer = setInterval(this.victory_decrement, 1000);
 		// intermission, new word, next drawer
-		this.next_drawer();
+		//this.next_drawer();
 	};
 	this.set_drawer = function(player) {
 		this.drawer = player;
@@ -185,9 +206,9 @@ var game = new function() {
 		id = find_socket_by_name(this.drawer);
 		io.sockets.sockets[id].is_drawer = true;
 		io.sockets.sockets[id].emit('is_drawing', true);
-		io.sockets.sockets[id].emit('update_chat', 'SERVER', "It's your turn to draw.");		
+		io.sockets.sockets[id].emit('update_chat', 'SERVER', "It's your turn to draw next.");		
 		io.sockets.emit('next_drawer');
-		this.start_intermission();
+		this.fetch_word_and_start_intermission();
 	};
 	this.is_drawer = function(player) {
 		if (this.drawer === player) {
@@ -195,6 +216,18 @@ var game = new function() {
 		} else {
 			return false;
 		}
+	};
+	this.fetch_word_and_start_intermission = function() {
+        	db = new sqlite3.Database(db_file);
+	        db.serialize(function() {
+			db.get("SELECT * FROM words ORDER BY RANDOM() LIMIT 1", function(error, row) {
+				if(typeof row !== "undefined") { 
+					game.the_word = row.word;
+				}
+				game.start_intermission();	
+			});
+		});
+		db.close();
 	};
 };
 
@@ -251,7 +284,7 @@ io.on('connection', function(socket){
 			// Auto-start game for the debug sessions
 			if (Object.keys(players).length >= 2 && game.is_running === false) {
 				game.run();
-				io.sockets.emit('update_chat', 'SERVER', 'GAME INIT::');
+				io.sockets.emit('update_chat', 'SERVER', 'The game is starting soon.');
 				io.sockets.emit('update_chat', 'SERVER', "It's " + game.drawer + "'s turn.");
 			}
 		} else if (want_to_play === false) {
@@ -317,5 +350,5 @@ function find_socket_by_name(name) {
 		}
 	}
 	return undefined;
-} 
+}
 
