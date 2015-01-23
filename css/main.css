@@ -1,39 +1,160 @@
 body {
-	background: #dedede;
+	background-color: #2c3e50;
+	font-family: 'Lato', sans-serif;
+}
+
+#counter-container {
+	color: #ecf0f1;
+}
+
+#word-container {
+	color: #ecf0f1;
+}
+
+#game-container {
+	color: #ecf0f1;
+}
+
+#counter_and_word {
+	/*background-color: #8e44ad;*/
+}
+
+#app-title {
+	color: #ecf0f1;
 }
 
 #painter {
 	width: 600px;
 	height: 400px;
-	margin: 0 auto;
+	margin: 10px auto;
+}
+
+#datasend {
+	margin-top: 10px;
+}
+
+#iwannaplay {
+	margin-top: 10px;
+}
+
+#game-container .box-title {
+	background-color: #27ae60;
+}
+
+#counter-container .box-title {
+	background-color: #2980b9;
+}
+
+#word-container .box-title {
+	background-color: #8e44ad;
+	width: 210px;
+}
+
+#game-container .box-text {
+	background-color: #2ecc71;
+} 
+
+#counter-container .box-text {
+	background-color: #3498db;
+}
+
+#word-container .box-text {
+	background-color: #9b59b6;
+	width: 210px;
+}
+
+.box-title {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	text-align: center;
+	font-weight: bold;
+}
+
+.box-text {
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	text-align: center;
+	font-weight: bold;
+	height: 20px;
+	font-size: 15px;
+	margin-bottom: 10px;
 }
 
 #conversation {
-	height: 130px;
-	width: auto;
+	height: 210px;
+	/*width: auto;*/
 	overflow-y: auto;
+	background-color: #34495e;
+	color: #ecf0f1;
+	border-radius: 6px;
+	padding-left: 10px;
+	padding-right: 10px;
+	padding-top: 10px;
+	width: 600px;
+	word-wrap: break-word;
 }
 
 #convo {
-	float: left;
-	width: 300px;
+	/*float: left;*/
+	/*width: 300px;*/
 	height: 450px;
 	padding-left: 10px;
 	padding-top: 10px;
 }
 
+#data {
+	width: 600px;
+}
+
 #user_list {
-	float: left;
-	width: 100px;
+	/*float: left;*/
+	width: 180px;
 	height: 250px;
-	border-right: 1px solid black;
+	/*border-right: 1px solid black;*/
 	padding-left: 10px;
 	padding-right: 10px;
 	padding-top: 10px;
 	overflow-y: auto;
+	background-color: #34495e;
+	border-radius: 6px;
+	color: #ecf0f1;
+	margin-top: 62px;
+}
 
+.score {
+	float: right;
 }
 
 #chat_area {
 	/*margin-left: 300px;*/
+}
+
+#drawer {
+	text-align: center;
+	font-weight: bold;
+	color: #ecf0f1;
+	width: 180px;
+	margin-top: 10px;
+}
+
+#drawer-title {
+	background-color: #d35400;
+	border-top-right-radius: 4px;
+	border-top-left-radius: 4px;
+}
+
+#drawer-name {
+	background-color: #e67e22;
+	border-bottom-right-radius: 4px;
+	border-bottom-left-radius: 4px;
+	height: 20px;
+}
+
+.footer {
+	position: absolute;
+	bottom: 0px;
+	width: 100%;
+	height: 60px;
+	background-color: #34495e;
+	color: #ecf0f1;
 }
