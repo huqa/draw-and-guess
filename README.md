@@ -7,7 +7,8 @@ powered by node, express and socket.io.
 Clone the repository and install the modules with npm. 
 ```sh 
 $ git clone [git-repo-url] 
-$ cd draw-and-guess $ npm install 
+$ cd draw-and-guess 
+$ npm install 
 ```  
 
 After the installation change the password from the server.js -file to whatever you like. 
