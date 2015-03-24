@@ -1,0 +1,2 @@
+aakkoset nimessä -> ei toimi mikään [ FIXED ]
+boldattuna pelaajien nimet jotka pelaa

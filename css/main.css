@@ -1,6 +1,6 @@
 body {
 	background-color: #2c3e50;
-	font-family: 'Lato', sans-serif;
+	font-family: 'Droid Sans', sans-serif;
 }
 
 #counter-container {
@@ -17,6 +17,7 @@ body {
 
 #counter_and_word {
 	/*background-color: #8e44ad;*/
+	margin-top: 10px;
 }
 
 #app-title {
@@ -47,7 +48,7 @@ body {
 
 #word-container .box-title {
 	background-color: #8e44ad;
-	width: 210px;
+	/*width: 210px;*/
 }
 
 #game-container .box-text {
@@ -60,7 +61,7 @@ body {
 
 #word-container .box-text {
 	background-color: #9b59b6;
-	width: 210px;
+	/*width: 210px;*/
 }
 
 .box-title {
@@ -68,6 +69,7 @@ body {
 	border-top-right-radius: 4px;
 	text-align: center;
 	font-weight: bold;
+	width: 180px;
 }
 
 .box-text {
@@ -78,6 +80,11 @@ body {
 	height: 20px;
 	font-size: 15px;
 	margin-bottom: 10px;
+	width: 180px;
+}
+
+.chat-area {
+	margin-top: -80px;
 }
 
 #conversation {
@@ -106,19 +113,30 @@ body {
 	width: 600px;
 }
 
+#user_list_title {
+	background-color: #232E3A;
+        text-align: center;
+	font-weight: bold;
+
+}
+
 #user_list {
 	/*float: left;*/
 	width: 180px;
 	height: 250px;
 	/*border-right: 1px solid black;*/
-	padding-left: 10px;
+	/*padding-left: 10px;
 	padding-right: 10px;
-	padding-top: 10px;
+	padding-top: 10px;*/
 	overflow-y: auto;
 	background-color: #34495e;
 	border-radius: 6px;
 	color: #ecf0f1;
 	margin-top: 62px;
+}
+
+#users {
+	padding: 10px;
 }
 
 .score {

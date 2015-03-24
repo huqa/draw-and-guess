@@ -3,11 +3,11 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>	
+	<link href='http://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>	
 	<link rel="stylesheet" href="drawingboard.min.css">
 	<link href="bootstrap.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="main.css">
-	<title>draw-and-guess v0.6</title>
+	<title>draw-and-guess v0.6.4</title>
 	<script type="text/javascript" src="socket.io/socket.io.js"></script>
 	<script type="text/javascript" src="jquery.js"></script>
 	<script type="text/javascript" src="drawingboard.min.js"></script>
@@ -19,28 +19,22 @@
 		<div class="row">
 			<div class="col-md-offset-1 col-md-2">
 				<div id="user_list">
-					<b>USERS</b>
+					<div id="user_list_title">Users</div>
 					<div id="users"></div>
 				</div>
 				<div id="drawer">
 					<div id="drawer-title">Drawer</div>
 					<div id="drawer-name"></div>
 				</div>
+				<div id="counter_and_word">
+					<div id="game-container"><div class="box-title">Phase</div><div class="box-text"><div id="game-phase"></div></div></div>
+					<div id="counter-container"><div class="box-title">Time</div><div class="box-text"><div id="counter"></div></div></div>
+					<div id="word-container"><div class="box-title">Word</div><div class="box-text"><div id="word"></div></div></div>
+				</div>
 			</div>
 			<div class="col-md-6">
-				<div id="app-title">draw-and-guess v0.6, developed by <a href="http://github.com/huqa">huqa</a></div>
+				<div id="app-title">draw-and-guess, developed by <a href="http://github.com/huqa" target="_blank">huqa</a></div>
 				<div id="painter"></div>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-md-offset-3 col-md-6">
-				<div id="counter_and_word">
-					<div class="row">
-						<div id="game-container" class="col-md-4"><div class="box-title">Phase</div><div class="box-text"><div id="game-phase"></div></div></div>
-						<div id="counter-container" class="col-md-4"><div class="box-title">Time</div><div class="box-text"><div id="counter"></div></div></div>
-						<div id="word-container" class="col-md-4"><div class="box-title">Word</div><div class="box-text"><div id="word"></div></div></div>
-					</div>
-				</div>
 			</div>
 		</div>
 		<div class="row">
@@ -61,13 +55,6 @@
 			</div>
 		</div>
 	</div>
-
-
-
-
-
-
-
 	<script src="bootstrap.min.js"></script>
 </body>
 </html>

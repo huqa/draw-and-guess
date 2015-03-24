@@ -1,16 +1,21 @@
+// TODO: 
+// Reset UI
+
 	var socket = io.connect('http://mauku.net:8080');
 	var is_my_turn = false;
 	var is_intermission = false;
+	var im_playing = false;
 	var the_word = "";
 	var word_data = {};
 	var word_length = 0;
 	var drawer = "";
+	var phase = "";
 
 	var painter = null;
 
 	var _MSGS = {
-		intermission: '>>> Intermission >>>',
-		roundStart: '>>> Round start >>>',
+		intermission: '>>> Intermission',
+		roundStart: '>>> Round start',
 		yourWord: '>>> Your word to draw next is: ',
 		name: 'Welcome to draw and guess! Whats your name?'
 	};
@@ -19,15 +24,20 @@
 		not_started: 'Game not started',
 		intermission: 'Intermission',
 		cooldown: 'Cool down',
-		dg: 'Draw and Guess!'
+		dag: 'Draw and Guess!'
 	};
+	
+	socket.on('error', function(reason) {
+		console.error('Unable to connect Socket.IO', reason);
+	});
 
 	// on connection to server, ask for user's name with an anonymous callback
 	socket.on('connect', function(){
+		//console.log(socket);
 		// call the server-side function 'adduser' and send one parameter (value of prompt)
-		var name = null;
-		while(name === null || name === "") { name = prompt(_MSGS.name); }
-		socket.emit('add_user', name);
+		//var name = null;
+		//while(name === null || name === "") { name = prompt(_MSGS.name); }
+		socket.emit('add_user');
 		handleDrawingBoard();
 		handleChat();
 	});
@@ -38,10 +48,24 @@
 	});
 
 	// listener, whenever the server emits 'update_users', this updates the username list and scores
-	socket.on('update_users', function(usernames, scores) {
+	socket.on('update_users', function(usernames, scores, positions) {
 		$('#users').empty();
+		var pos = "";
+		var name = "";
 		for(var user in usernames) {
-			$('#users').append('<div class="user"><span class="username">' + usernames[user] + '</span><span class="score">'+scores[user]+'</span></div>');
+			if(positions !== null) {
+				if(typeof positions[user] !== "undefined") {
+					pos = "("+positions[user]+")";
+					name = '<b>' + usernames[user] + '</b>';
+				} else if(usernames[user] == drawer) {
+					pos = "(D)";
+					name = '<b>' + usernames[user] + '</b>';
+				} else {
+					pos = "";
+					name = usernames[user];
+				}
+			}
+			$('#users').append('<div class="user"><span class="username">' + name + ' ' + pos + '</span><span class="score">'+scores[user]+'</span></div>');
 		}
 	});
 	
@@ -71,8 +95,18 @@
 		// CLEAR things if game is stopped. f.ex all buttons should be set to Wanna play
 		$('#iwannaplay').prop('value', 'iwannaplay');
 		$('#iwannaplay').html("I wanna play");
+		$('#iwannaplay').attr('class', 'btn btn-success');
 		painter.resetBackground();
 		$('#game-phase').html(_PHASE.not_started);
+		//say("SERVER", "The game has been stopped! All players please press 'I wanna play'");
+		window.location.reload();
+	});
+
+	socket.on('game_reset', function() {
+                handleDrawingBoard();
+		handleChat();
+		painter.resetBackground();
+		say("SERVER", "Game reset!");
 	});
 
 	socket.on('is_drawing', function(what) {
@@ -85,6 +119,11 @@
 		if(is_my_turn === false) {
 			$("#word").html("("+data.type+")");
 		}
+	});
+
+	socket.on('phase', function(data) {
+		$('#game-phase').html(_PHASE[data]);
+		phase = data;
 	});
 
 	/*socket.on('word_type', function(type) {
@@ -125,6 +164,7 @@
 	});
 
 	socket.on('drawer', function(name) {
+		drawer = name;
 		$('#drawer-name').html(name);
 	});
 
@@ -134,7 +174,7 @@
 		painter.resetBackground();
 		handleDrawingBoard();
 		handleChat();
-		console.log(socket);
+		//console.log(socket);
 		//var message = '<div class="message"><b>INTERMISSION::</b></div>';
 		var message = bold_msg(_MSGS.intermission);
 		server_say(message);
@@ -159,7 +199,7 @@
 	socket.on('drawer_counter_start', function() {
 		//var msg = '<div class="message"><b>ROUND START::</b><br></div>';
 		var msg = bold_msg(_MSGS.roundStart);
-		$('#game-phase').html(_PHASE.dg);
+		$('#game-phase').html(_PHASE.dag);
 		server_say(msg);
 	});
 
@@ -181,7 +221,11 @@
 
 	function handleChat() {
 		if(is_my_turn === true) {
-			disable_chat();
+			if(phase === "cooldown") {
+				enable_chat();
+			} else {
+				disable_chat();
+			}
 		} else {
 			enable_chat();
 		}
@@ -223,7 +267,7 @@
 	}
 
 	// on page load
-	$(function(){
+	$(function() {
 		// when the client clicks SEND
 		$('#datasend').click( function() {
 			var message = $('#data').val();
@@ -234,11 +278,13 @@
 		$('#iwannaplay').click(function() {
 			if($(this).prop('value') === 'iwannaplay') {
 				socket.emit('wanna_play', true);
+				im_playing = true;
 				$(this).prop('value', 'dontwanna');
 				$(this).html("I don't wanna play");
 				$(this).attr('class', 'btn btn-warning');
 			} else {
 				socket.emit('wanna_play', false);
+				im_playing = false;
 				$(this).prop('value', 'iwannaplay');
 				$(this).html("I wanna play");
 				$(this).attr('class', 'btn btn-success');
